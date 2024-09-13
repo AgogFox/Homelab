@@ -35,9 +35,9 @@ entryPoints:
       tls: #For Let's Encrypt
         certResolver: production
         domains:
-          - main: mydoamin.com
+          - main: mydomain.com
             sans:
-              - "*.mydoamin.com"
+              - "*.mydomain.com"
       middlewares:
         - security-headers@file
 
