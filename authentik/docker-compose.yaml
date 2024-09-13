@@ -98,9 +98,9 @@ services:
       - backend
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /etc/docker-bind-mounts/authentik/media:/media
-      - /etc/docker-bind-mounts/authentik/certs:/certs
-      - /etc/docker-bind-mounts/authentik/custom-templates:/templates
+      - path/to/media:/media
+      - path/to/certs:/certs
+      - path/to/custom-templates:/templates
     depends_on:
       - postgresql
       - redis
