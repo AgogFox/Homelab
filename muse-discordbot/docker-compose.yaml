@@ -1,0 +1,19 @@
+#https://github.com/museofficial/muse
+
+services:
+  muse:
+    image: codetheweb/muse:latest
+    container_name: muse_discord-bot
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - data:/data
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+
+volumes:
+  data:

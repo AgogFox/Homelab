@@ -1,0 +1,15 @@
+http:
+  routers:
+    myExternalService:
+      entryPoints:
+        - https-external
+      rule: "Host(`external.mydomain.com`)"
+      tls: {}
+      service: "myExternalService"
+
+  services:
+    myExternalService:
+      loadBalancer:
+        servers:
+          - url: "https://<ip>:<port>"
+#         - url: "https://<ip>:<port>" you can add more url for loadbalancing

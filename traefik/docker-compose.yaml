@@ -1,0 +1,52 @@
+services:
+  traefik:
+    image: "traefik:latest"
+    container_name: "traefik"
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro #timezone
+      - /var/run/docker.sock:/var/run/docker.sock:ro #docker socket
+      - path/to/certs:/certs #certificates
+      - path/to/traefik.yaml:/traefik.yaml:ro #traefik config
+      - path/to/conf.d:/conf.d:ro #dynamic config
+    networks:
+      - proxy
+      - Arrs
+    ports:
+      - "80:80" #http
+      - "81:81" #http-external
+      - "443:443" #https
+      - "444:444" #https-external
+      - "5555:5555" #dashboard
+    labels:
+      - "traefik.enable=true"
+
+      #encode password using these command
+      # apt-get install apache2-utils
+      # echo $(htpasswd -nbB USER "PASS") | sed -e s/\\$/\\$\\$/g
+      - "traefik.http.middlewares.dashboardAuth.basicauth.users=<username:encoded password>"
+
+      # ip access
+      - "traefik.http.routers.traefik-ip.entrypoints=dashboard"
+      - "traefik.http.routers.traefik-ip.rule=Host(`<ip>`)"
+      - "traefik.http.routers.traefik-ip.middlewares=dashboardAuth, lan-whitelist@file"
+      - "traefik.http.routers.traefik-ip.service=api@internal"
+      - "traefik.http.routers.traefik-ip.tls=true"
+      # domain name access
+      - "traefik.http.routers.traefik.entrypoints=https"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.local.mydomain.com`)"
+      - "traefik.http.routers.traefik.middlewares=dashboardAuth, lan-whitelist@file"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.tls=true"
+
+networks:
+  proxy:
+    name: proxy
+    external: true
+  Arrs:
+    name: Arrs
+    external: true

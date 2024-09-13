@@ -1,0 +1,30 @@
+services:
+  adguard:
+    image: 'adguard/adguardhome'
+    container_name: adguard
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /etc/localtime:/etc/localtime:ro #timezone
+      - path/to/workdir:/opt/adguardhome/work
+      - path/to/confdir:/opt/adguardhome/conf
+    ports:
+      - <host ip>:53:53/tcp
+      - <host ip>53:53/udp
+      - 3000:3000/tcp #Used in case the reverse proxy brake. You can remove this line.
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adguard.entrypoints=https"
+      - "traefik.http.routers.adguard.rule=Host(`adguard.local.mydomain.com`)"
+      - "traefik.http.routers.adguard.tls=true"
+      - "traefik.http.services.adguard.loadbalancer.server.scheme=http"
+      - "traefik.http.services.adguard.loadbalancer.server.port=3000"
+      - "traefik.http.routers.adguard.middlewares=lan-whitelist@file"
+
+networks:
+  proxy:
+    name: proxy
+    external: true

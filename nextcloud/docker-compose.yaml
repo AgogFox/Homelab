@@ -1,0 +1,68 @@
+services:
+  nextcloud:
+    image: "linuxserver/nextcloud:latest"
+    container_name: "nextcloud"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - nextcloud-db
+      - redis
+    environment:
+      - PUID=1000
+      - GUID=1000
+      - TZ=Asia/Bangkok #Find your timezone here https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List
+      - DOCKER_MODS=linuxserver/mods:nextcloud-memories
+    volumes:
+      - path/to/data:/data #data
+      - path/to/config:/config #config
+      - type: tmpfs #For nextcloud Memories
+        target: /tmp:exec
+    networks:
+      - proxy
+      - backend
+    labels:
+      - "traefik.docker.network=proxy"
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextcloud.entrypoints=https-external"
+      - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.mydomain.com`)"
+      - "traefik.http.routers.nextcloud.tls=true"
+      - "traefik.http.routers.nextcloud.tls.options=cf-mTLS@file" #For Cloudflare Authenticated Origin Pulls
+      - "traefik.http.routers.nextcloud.middlewares=nextcloud-redirect@file"
+
+      - "com.centurylinklabs.watchtower.enable=false" #Disable auto update is recommend because of breaking changes.
+
+  nextcloud-db:
+    image: "postgres:15-alpine"
+    container_name: "nextcloud-db"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - db:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  redis:
+    image: "redis:alpine"
+    container_name: "redis"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+
+networks:
+  proxy:
+    name: proxy
+    external: true
+  backend:
+
+volumes:
+  redis_data:
+  db:

@@ -1,0 +1,26 @@
+services:
+    jellyseerr:
+        image: fallenbagel/jellyseerr:latest
+        container_name: jellyseerr
+        restart: unless-stopped
+        environment:
+          - LOG_LEVEL=debug #You can change this to `info`
+          - TZ=Asia/Bangkok #Find your timezone here https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List
+        # ports:
+        #   - 5055:5055
+        networks:
+          - Arrs
+        volumes:
+          - /path/to/appdata/config:/app/config
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.overseerr.entrypoints=https-external"
+          - "traefik.http.routers.overseerr.rule=Host(`jellyseerr.mydomain.com`)"
+          - "traefik.http.routers.overseerr.tls=true"
+          - "traefik.http.services.overseerr.loadbalancer.server.port=5055"
+
+
+networks:
+  Arrs:
+    name: Arrs
+    external: true

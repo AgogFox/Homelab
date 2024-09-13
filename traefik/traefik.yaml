@@ -1,0 +1,79 @@
+#Traefik Static config file
+
+api:
+  dashboard: true
+
+# log:
+#   level: debug
+
+entryPoints:
+#Why I'm separate the entrypoints for internal and external. https://youtu.be/IBlZgrwc1T8
+  http: #for internal use only
+    address: ":80"
+    http:
+      redirections: #redirect to https
+        entryPoint:
+          to: https
+          scheme: https
+          permanent: true
+
+  https: #for internal use only
+    address: ":443"
+
+  http-external:
+    address: ":81" #This port is change from 80 on the outside to 81 on the inside by port forwarding in router
+    http:
+      redirections:
+        entryPoint:
+          to: ":443" #not to 444 because the cilent will see 443 on the outside
+          scheme: https
+          permanent: true
+
+  https-external:
+    address: ":444" #This port is change from 443 on the outside to 444 on the inside by port forwarding in router
+    http:
+      tls: #For Let's Encrypt
+        certResolver: production
+        domains:
+          - main: mydoamin.com
+            sans:
+              - "*.mydoamin.com"
+      middlewares:
+        - security-headers@file
+
+  dashboard:
+    address: ":5555"
+
+certificatesResolvers:
+  staging:
+    acme:
+      email: myemail@gmail.com
+      storage: /certs/acme-staging.json
+      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - 1.1.1.1:53
+          - 1.0.0.1:53
+
+  production:
+    acme:
+      email: myemail@gmail.com
+      storage: /certs/acme-production.json
+      caServer: "https://acme-v02.api.letsencrypt.org/directory"
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - 1.1.1.1:53
+          - 1.0.0.1:53
+
+serversTransport:
+  insecureSkipVerify: true
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+  file:
+    directory: /conf.d
+    watch: true

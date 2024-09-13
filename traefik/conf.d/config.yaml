@@ -1,0 +1,38 @@
+#Dynamic config file
+tls:
+  certificates:
+    - certFile: /certs/local-fullchain-cert.pem #Valid self signed cert for local services using my own CA. https://youtu.be/VH4gXcvkmOY
+      keyFile: /certs/local-cert-key.pem
+
+  options:
+    cf-mTLS:
+      clientAuth:
+        caFiles:
+          - /certs/authenticated_origin_pull_ca.pem
+        clientAuthType: RequireAndVerifyClientCert
+
+http:
+  middlewares:
+    lan-whitelist:
+      IPAllowList:
+        sourceRange:
+          - "<you local ip range ex. 192.168.1.1/24>"
+
+    security-headers:
+      headers:
+        customResponseHeaders:
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex,noindex,nofollow" #prevent google index
+        customFrameOptionsValue: SAMEORIGIN
+        forceSTSHeader: true
+        STSSeconds: 31536000
+        STSIncludeSubdomains: true
+        STSPreload: true
+        browserXSSFilter: true
+        contentTypeNosniff: true
+        referrerPolicy: same-origin
+
+    nextcloud-redirect:
+      redirectregex:
+        permanent: true
+        regex: "https://(.*)/.well-known/(card|cal)dav"
+        replacement: "https://${1}/remote.php/dav/"
